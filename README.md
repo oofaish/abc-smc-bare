@@ -31,8 +31,9 @@ first install the following packages
     numpy
     matplotlib
     scipy
+    seaborn
 
-You really should know how to install these things if you are here, but a quick http://duckduckgo.com will get you there too.
+You really should know how to install these things if you are here, but a quick http://duckduckgo.com will get you there too. Seaborn and scipy are not really essential, but useful. Specially seaborn, why whould you not have seaborn installed?
 
 # installation
 Because I want this to be a quick hacking library, there is no real installation. Just copy the abcsmcbare directory whereever you want to use it and just import it:
