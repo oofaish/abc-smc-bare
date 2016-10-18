@@ -59,7 +59,7 @@ class AbcsmcResults:
         self.naccepted = naccepted
         self.sampled = sampled
         self.rate = rate
-        self.trajectories = np.array(trajectories)
+        self.trajectories = trajectories  # cant convert to array as they could be different sizes for different models
         self.distances = np.array(distances)
         self.margins = np.array(margins)
         self.models = np.array(models)
@@ -197,7 +197,7 @@ class Abcsmc:
             self.io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev, self.kernels, allResults)
 
             if self.debug == 1:
-                print "### iter:%d, eps=%0.2f, sampled=%d, accepted=%.2f" % (pop + 1, thisEpsilon, self.sampled[pop], self.rate[pop])
+                print "### iter:%d, eps=%0.2f, sampled=%d, accepted=%.2f" % (pop + 1, epsilonToUse, self.sampled[pop], self.rate[pop])
                 #   print "\t sampling steps / acceptance rate (%d/%):", self.sampled[pop], "/", self.rate[pop]
                 print "model marginals:", self.margins_prev
 

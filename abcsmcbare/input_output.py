@@ -17,14 +17,14 @@ class InputOutput:
         else:
             self.folder = '%s%s' % (folder, datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
 
-        print 'top folder name is %s (useful e.g. if you are restarting because in such cases, this is the folder name you should pass in)' % self.folder
-
         # Hold all data here for plotting purposes.
         # May want to remove this as could get large
         self.all_results = []
 
         if restart:
             self.folder += '_restart'
+
+        print 'top folder name is %s\n(useful e.g. if you are restarting because in such cases this is the folder name you should pass in)' % self.folder
 
     # write rates, distances, trajectories
     def create_output_folders(self, num_outputs, pickling):

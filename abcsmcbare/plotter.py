@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+from PriorType import PriorType
 
 def bin_data(d, w, nbins):
     d_max = np.max(d)
@@ -36,7 +36,7 @@ def modelMarginsByPopulation(allResults, models):
 
 def plotHistogram(result, modelIndex, parameterIndexes=None, models=None, bins=9):
     if parameterIndexes is None:
-        parameterIndexes = range(models[modelIndex].nparameters)
+        parameterIndexes = nonConstantParameterIndexes(models[modelIndex])
 
     np = len(parameterIndexes)
     if np == 1:
@@ -77,14 +77,21 @@ def plotHistogram(result, modelIndex, parameterIndexes=None, models=None, bins=9
     plt.hold(False)
 
 
-def doPairPlot(allResults, modelIndex, populationsIndex, models):
-    populationsIndex = range(10)
+def nonConstantParameterIndexes(model):
+    pi = []
+    for index, pt in enumerate(model.prior):
+        if pt.type is not PriorType.constant:
+            pi.append(int(index))
 
+    return pi
+
+
+def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=None):
     parametersForModelByPopulation = [r.parameters[r.models == modelIndex] for r in allResults]
     weightsForModelByPopulation    = [r.weights[r.models == modelIndex] for r in allResults]
 
-    dim = models[modelIndex].nparameters
-
+    nonConstantPIs = nonConstantParameterIndexes(models[modelIndex])
+    dim         = len(nonConstantPIs)
     my_colors = ['#000000', '#003399', '#3333FF', '#6666FF', '#990000', '#CC0033', '#FF6600', '#FFCC00', '#FFFF33',
                  '#33CC00', '#339900', '#336600']
 
@@ -112,10 +119,9 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models):
         for i in range(len(permutation)):
             plt.subplot(dim, dim, i + 1)
             w = weightsForModelByPopulation[populationsIndex[-1]]
-
-            for populationIndex in populationsIndex:
-                x = [tmp[int(permutation[i][0]-1)] for tmp in parametersForModelByPopulation[populationIndex]]
-                y = [tmp[int(permutation[i][1]-1)] for tmp in parametersForModelByPopulation[populationIndex]]
+            for counter, populationIndex in enumerate(populationsIndex):
+                x = [tmp[nonConstantPIs[int(permutation[i][0]-1)]] for tmp in parametersForModelByPopulation[populationIndex]]
+                y = [tmp[nonConstantPIs[int(permutation[i][1]-1)]] for tmp in parametersForModelByPopulation[populationIndex]]
 
                 if permutation[i][0] == permutation[i][1]:
                     if populationIndex == populationsIndex[-1]:
@@ -127,17 +133,21 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models):
                             max_x = max(histogram_x)
                             min_x = min(histogram_x)
                             range_x = max_x - min_x
-                            plt.bar(histogram_x, histogram_y, width=range_x / bin_b, color=my_colors[populationIndex], align='center', alpha=0.5)
+                            plt.bar(histogram_x, histogram_y, width=range_x / bin_b, color=my_colors[counter], align='center', alpha=0.5)
                             plt.xlabel('parameter ' + repr(i2), size='xx-small')
+                            plt.vlines(actualValues[int(permutation[i][0])-1], 0, plt.gca().get_ylim()[1], colors='k', linestyles='--', label='')
 
                 else:
                     if not (len(x) == 0):
                         tag = str(populationIndex)
-                        plt.scatter(x, y, s=20, marker='o', c=my_colors[populationIndex], edgecolor=my_colors[populationIndex], alpha=0.5, label=tag)
+                        plt.scatter(x, y, s=20, marker='o', c=my_colors[counter], edgecolor=my_colors[counter], alpha=0.5, label=tag)
                         plt.hold(True)
 
                         if i == len(permutation)-2:
                             plt.legend(loc='lower right', bbox_to_anchor=(1.5, -0.3), fancybox=True, shadow=True, ncol=5, prop={'size': 18})
+
+                        if actualValues is not None and populationIndex == populationsIndex[-1]:
+                            plt.scatter([actualValues[int(permutation[i][0]-1)]], [actualValues[int(permutation[i][1]-1)]], marker='+', s=5000, color='black',linewidth=2)
 
                 xmin, xmax = plt.xlim()
                 ymin, ymax = plt.ylim()
