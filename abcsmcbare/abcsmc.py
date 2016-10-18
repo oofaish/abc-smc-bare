@@ -311,28 +311,27 @@ class Abcsmc:
 
         # Compute kernels
         for model_index in range(self.nmodel):
-            this_model_index = np.arange(self.nparticles)[np.array(self.model_prev) == model_index]
-            this_population = np.zeros([len(this_model_index), self.models[model_index].nparameters])
-            this_weights = np.zeros(len(this_model_index))
-            # ALI: what the fuck is this_model_index
+            this_model_index_particles = np.arange(self.nparticles)[np.array(self.model_prev) == model_index]
+            this_population = np.zeros([len(this_model_index_particles), self.models[model_index].nparameters])
+            this_weights = np.zeros(len(this_model_index_particles))
             # if we have just sampled from the prior we shall initialise the kernels using all available particles
             if prior:
-                for it in range(len(this_model_index)):
-                    if len(this_population[it, :]) != len(self.parameters_prev[this_model_index[it]][:]):
+                for it in range(len(this_model_index_particles)):
+                    if len(this_population[it, :]) != len(self.parameters_prev[this_model_index_particles[it]][:]):
                         print '>>>', this_population[it, :]
-                        print '>>>', self.parameters_prev[this_model_index[it]][:]
+                        print '>>>', self.parameters_prev[this_model_index_particles[it]][:]
 
-                    this_population[it, :] = self.parameters_prev[this_model_index[it]][:]
-                    this_weights[it] = self.weights_prev[this_model_index[it]]
+                    this_population[it, :] = self.parameters_prev[this_model_index_particles[it]][:]
+                    this_weights[it] = self.weights_prev[this_model_index_particles[it]]
                 tmp_kernel = self.kernelfn(self.kernel_type, self.kernels[model_index], this_population, this_weights)
                 self.kernels[model_index] = tmp_kernel[:]
 
             else:
                 # only update the kernels if there are > 5 particles
-                if len(this_model_index) > 5:
-                    for it in range(len(this_model_index)):
-                        this_population[it, :] = self.parameters_prev[this_model_index[it]][:]
-                        this_weights[it] = self.weights_prev[this_model_index[it]]
+                if len(this_model_index_particles) > 5:
+                    for it in range(len(this_model_index_particles)):
+                        this_population[it, :] = self.parameters_prev[this_model_index_particles[it]][:]
+                        this_weights[it] = self.weights_prev[this_model_index_particles[it]]
                     tmp_kernel = self.kernelfn(self.kernel_type, self.kernels[model_index], this_population, this_weights)
                     self.kernels[model_index] = tmp_kernel[:]
 
