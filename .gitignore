@@ -24,6 +24,7 @@ var/
 .installed.cfg
 *.egg
 venv/
+_results_*/
 
 .DS_Store
 
