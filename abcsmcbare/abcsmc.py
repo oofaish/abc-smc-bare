@@ -311,27 +311,33 @@ class Abcsmc:
 
         # Compute kernels
         for model_index in range(self.nmodel):
-            this_model_index_particles = np.arange(self.nparticles)[np.array(self.model_prev) == model_index]
-            this_population = np.zeros([len(this_model_index_particles), self.models[model_index].nparameters])
-            this_weights = np.zeros(len(this_model_index_particles))
+            this_model_particles = np.arange(self.nparticles)[np.array(self.model_prev) == model_index]
+
+            this_population = np.zeros([len(this_model_particles), self.models[model_index].nparameters])
+            this_weights = np.zeros(len(this_model_particles))
             # if we have just sampled from the prior we shall initialise the kernels using all available particles
             if prior:
-                for it in range(len(this_model_index_particles)):
-                    if len(this_population[it, :]) != len(self.parameters_prev[this_model_index_particles[it]][:]):
-                        print '>>>', this_population[it, :]
-                        print '>>>', self.parameters_prev[this_model_index_particles[it]][:]
+                # quick sanity check - on step 1 we should really have all the models
+                if len(set(self.model_prev)) is not self.nmodel:
+                    raise RuntimeError('Something is very wrong - in my first population I failed to sample all models - are you sure your distance function is working?')
 
-                    this_population[it, :] = self.parameters_prev[this_model_index_particles[it]][:]
-                    this_weights[it] = self.weights_prev[this_model_index_particles[it]]
+                for it in range(len(this_model_particles)):
+                    if len(this_population[it, :]) != len(self.parameters_prev[this_model_particles[it]][:]):
+                        print '>>>', this_population[it, :]
+                        print '>>>', self.parameters_prev[this_model_particles[it]][:]
+
+                    this_population[it, :] = self.parameters_prev[this_model_particles[it]][:]
+                    this_weights[it] = self.weights_prev[this_model_particles[it]]
+
                 tmp_kernel = self.kernelfn(self.kernel_type, self.kernels[model_index], this_population, this_weights)
                 self.kernels[model_index] = tmp_kernel[:]
 
             else:
                 # only update the kernels if there are > 5 particles
-                if len(this_model_index_particles) > 5:
-                    for it in range(len(this_model_index_particles)):
-                        this_population[it, :] = self.parameters_prev[this_model_index_particles[it]][:]
-                        this_weights[it] = self.weights_prev[this_model_index_particles[it]]
+                if len(this_model_particles) > 5:
+                    for it in range(len(this_model_particles)):
+                        this_population[it, :] = self.parameters_prev[this_model_particles[it]][:]
+                        this_weights[it] = self.weights_prev[this_model_particles[it]]
                     tmp_kernel = self.kernelfn(self.kernel_type, self.kernels[model_index], this_population, this_weights)
                     self.kernels[model_index] = tmp_kernel[:]
 
