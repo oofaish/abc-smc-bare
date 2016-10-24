@@ -3,6 +3,7 @@ from numpy import random as rnd
 
 import copy
 import time
+import sys
 from abcsmcbare import kernels
 from abcsmcbare import statistics
 from KernelType import KernelType
@@ -179,7 +180,7 @@ class Abcsmc:
         for pop, thisEpsilon in enumerate(epsilonSchedule):
             if pop > 0 and adaptiveEpsilon:
                 adaptiveEpsilon, quantile = self.nextAdaptiveEpsilon(results.distances, epsilonSchedule[-1], adaptiveEpsilonQuantile)
-                if self.debug == 1:
+                if self.debug >= 1:
                     print '### Adapting epsilon to %f (Quantile=%f) instead of %f' % (adaptiveEpsilon, quantile, thisEpsilon)
                     epsilonToUse = adaptiveEpsilon
             else:
@@ -196,7 +197,7 @@ class Abcsmc:
 
             self.io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev, self.kernels, allResults)
 
-            if self.debug == 1:
+            if self.debug >=1:
                 print "### iter:%d, eps=%0.2f, sampled=%d, accepted=%.2f" % (pop + 1, epsilonToUse, self.sampled[pop], self.rate[pop])
                 #   print "\t sampling steps / acceptance rate (%d/%):", self.sampled[pop], "/", self.rate[pop]
                 print "model marginals:", self.margins_prev
@@ -205,6 +206,9 @@ class Abcsmc:
                     print "\t dead models                      :", self.dead_models
                 if self.timing:
                     print "\t timing:                          :", end_time - start_time
+
+                sys.stdout.flush()
+
         if self.timing:
             print "#### final time:", time.time() - all_start_time
 
@@ -244,7 +248,6 @@ class Abcsmc:
 
             accepted_index, distances, traj = self.simulate_and_compare_to_data(sampled_models_indexes, sampled_params,
                                                                                 next_epsilon)
-
             for i in range(self.nbatch):
                 if naccepted < self.nparticles:
                     sampled += 1
@@ -266,7 +269,7 @@ class Abcsmc:
             if self.debug == 2:
                 print "#### current naccepted:", naccepted
 
-            if self.debug == 2:
+            if self.debug > 1:
                 print "\t****end  batch naccepted/sampled:", naccepted, sampled
 
         # Finished loop over particles
@@ -392,6 +395,17 @@ class Abcsmc:
 
         self.sample_from_prior = False
 
+        # you gotta fill the dead models too
+        self.dead_models = []
+        nonDeadModelNumbers = list(set(self.model_prev))
+        assert len(self.dead_models) == 0, ValueError('Oh no, I had some existing dead models! %s' % self.dead_models)
+        for j in range(self.nmodel):
+            isDead = False
+            if self.margins_prev[j] < 1e-6:
+                self.dead_models.append(j)
+                isDead = True
+            assert (isDead or j in nonDeadModelNumbers), RuntimeError('Model %d is neither dead nor alive' % j)
+
     def simulate_and_compare_to_data(self, sampled_models_indexes, sampled_params, epsilon, do_comp=True):
         """
         Perform simulations:
@@ -429,7 +443,9 @@ class Abcsmc:
 
             num_simulations = len(mapping)
             if num_simulations == 0:
-                break
+                # I really dont think you should be breaking here like you used to
+                # continue so you try the next model!
+                continue
 
             this_model_parameters = []
             for i in range(num_simulations):
@@ -506,6 +522,7 @@ class Abcsmc:
                         perturbed_model = available_indexes[0]
 
                         models[i] = perturbed_model
+
         return models[:]
 
     def sample_parameters_from_prior(self, sampled_models_indexes):
