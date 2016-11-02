@@ -197,7 +197,7 @@ class Abcsmc:
 
             self.io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev, self.kernels, allResults)
 
-            if self.debug >=1:
+            if self.debug >= 1:
                 print "### iter:%d, eps=%0.2f, sampled=%d, accepted=%.2f" % (pop + 1, epsilonToUse, self.sampled[pop], self.rate[pop])
                 #   print "\t sampling steps / acceptance rate (%d/%):", self.sampled[pop], "/", self.rate[pop]
                 print "model marginals:", self.margins_prev
@@ -598,7 +598,7 @@ class Abcsmc:
                                                       self.weights_prev)
 
                 # Copy this particle's params into a new array, then perturb this in place using the parameter
-                #  perturbation kernel
+                #  perturbation kernel ALI
                 for param in range(num_params):
                     sample[param] = self.parameters_prev[particle][param]
 
@@ -615,8 +615,8 @@ class Abcsmc:
         return samples
 
     def compute_particle_weights(self):
-        """
-        Calculate the weight of each particle.
+        r"""Calculate the weight of each particle.
+
         This is given by $w_t^i = \frac{\pi(M_t^i, \theta_t^i) P_{t-1}(M_t^i = M_{t-1}) }{S_1 S_2 }$, where
         $S_1 = \sum_{j \in M} P_{t-1}(M^j_{t-1}) KM_t(M_t^i | M^j_{t-1})$ and
         $S_2 = \sum_{k \in M_t^i = M_{t-1}} w^k_{t-1} K_{t, M^i}(\theta_t^i | \theta_{t-1}^k)$
@@ -679,17 +679,13 @@ class Abcsmc:
             self.weights_curr[k] = self.margins_prev[model_num] * numerator / (s1 * s2)
 
     def normalize_weights(self):
-        """
-        Normalize weights by dividing each by the total.
-        """
+        """Normalize weights by dividing each by the total."""
         n = sum(self.weights_curr)
         for i in range(self.nparticles):
             self.weights_curr[i] /= float(n)
 
     def update_model_marginals(self):
-        """
-        Re-calculate the marginal probability of each model as the sum of the weights of the corresponding particles.
-        """
+        """Re-calculate the marginal probability of each model as the sum of the weights of the corresponding particles."""
         for model in range(self.nmodel):
             self.margins_curr[model] = 0
             for particle in range(self.nparticles):
@@ -698,9 +694,7 @@ class Abcsmc:
 
 
 def sample_particle_from_model(nparticle, selected_model, margins_prev, model_prev, weights_prev):
-    """
-    Select a particle from those in the previous generation whose model was the currently selected model, weighted by
-    their previous weight.
+    """Select a particle from those in the previous generation whose model was the currently selected model, weighted by their previous weight.
 
     Parameters
     ----------
@@ -727,8 +721,7 @@ def sample_particle_from_model(nparticle, selected_model, margins_prev, model_pr
 
 
 def get_model_kernel_pdf(new_model, old_model, model_k, num_models, dead_models):
-    """
-    Returns the probability of model number m0 being perturbed into model number m (assuming neither is dead).
+    """Return the probability of model number m0 being perturbed into model number m (assuming neither is dead).
 
     This assumes a uniform model perturbation kernel: with probability modelK the model is not perturbed; with
     probability (1-modelK) it is replaced by a model randomly chosen from the non-dead models (including the current
@@ -742,7 +735,6 @@ def get_model_kernel_pdf(new_model, old_model, model_k, num_models, dead_models)
     num_models : total number of models
     dead_models : number of models which are 'dead'
     """
-
     num_dead_models = len(dead_models)
 
     if num_dead_models == num_models - 1:
@@ -755,14 +747,12 @@ def get_model_kernel_pdf(new_model, old_model, model_k, num_models, dead_models)
 
 
 def check_below_threshold(distance, epsilon):
-    """
-    Return true if each element of distance is less than the corresponding entry of epsilon (and non-negative)
+    """Return true if each element of distance is less than the corresponding entry of epsilon (and non-negative).
 
     Parameters
     ----------
     distance : list of distances
     epsilon : list of maximum acceptable distances
-
     """
     return distance < epsilon
     # accepted = False
