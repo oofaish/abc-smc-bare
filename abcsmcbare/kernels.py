@@ -56,6 +56,7 @@ def get_kernel(kernel_type, kernel, population, weights):
             tmp = [[-1, 1] for _ in kernel[0]]
         else:
             tmp = list()
+            #print '---->', kernel
             for param in kernel[0]:
                 minimum = min(population[:, param])
                 maximum = max(population[:, param])

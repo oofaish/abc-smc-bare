@@ -26,6 +26,24 @@ def bin_data(d, w, nbins):
     return [bin_c, count]
 
 
+def acceptanceRatioAndEpsilonByPopulation(allResults):
+    rates = [x.rate for x in allResults]
+    epsilons            = [r.epsilon for r in allResults]
+
+    plt.plot(rates, '--', linewidth=2, label='Acceptance Rate')
+
+    ax1 = plt.gca()
+    ax2 = ax1.twinx()
+
+    ax2.plot(epsilons, '-', label='Tolerance', linewidth=2)
+
+    ax1.legend(['Population Acceptance Rate'], loc=2)
+    ax2.legend(['Population Tolerance', ], loc=1)
+    ax1.set_xlabel('Population')
+    ax1.set_ylabel('Acceptance Ratio')
+    ax2.set_ylabel('Tolerance')
+
+
 def modelMarginsByPopulation(allResults, models):
     marginsByPopulation = [r.margins for r in allResults]
     epsilons            = [r.epsilon for r in allResults]
@@ -34,13 +52,14 @@ def modelMarginsByPopulation(allResults, models):
     ax1 = plt.gca()
     ax2 = ax1.twinx()
 
-    ax2.plot(epsilons, '--', label='Epsilons')
+    ax2.plot(epsilons, '--', label='Tolerance')
 
-    ax1.legend([m.name for m in models], loc=2)
-    ax2.legend(['Epsilons', ], loc=3)
+    ax1.legend([m.name + ' model marginal' for m in models], loc=2)
+    ax2.legend(['Population Tolerance', ], loc=1)
     plt.xlabel('Population')
     ax1.set_ylabel('Model margin')
-    ax2.set_ylabel('Epsilon')
+    ax2.set_ylabel('Tolerance')
+    ax1.set_xlabel('Population')
 
 def plotHistogram(result, modelIndex, parameterIndexes=None, models=None, bins=9):
     if parameterIndexes is None:
@@ -94,7 +113,7 @@ def nonConstantParameterIndexes(model):
     return pi
 
 
-def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=None):
+def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=None,actualValuesColor='yellow',plotHistogramOnFullRange=False):
     """Do a pair plot, max dim 20.
 
     actualValues must include the constant elements too (it didnt used to)
@@ -105,6 +124,12 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=No
 
     nonConstantPIs = nonConstantParameterIndexes(models[modelIndex])
     dim         = len(nonConstantPIs)
+
+    if dim < 5:
+        actualValuesLineWidth = 4
+    else:
+        actualValuesLineWidth = 2
+
     my_colors = ['#000000', '#003399', '#3333FF', '#6666FF', '#990000', '#CC0033', '#FF6600', '#FFCC00', '#FFFF33',
                  '#33CC00', '#339900', '#336600']
 
@@ -116,13 +141,21 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=No
 
     max1 = 20.0
 
-    fig, (axs) = plt.subplots(ncols=dim, nrows=dim, figsize=(12, 12))
+    fig, (axs) = plt.subplots(ncols=dim, nrows=dim, figsize=(16, 16))
 
     assert dim <= max1, NotImplementedError('I am afraid only allowing 20 non-constant dimensions for now!')
+
+    maxValueByPI = [-np.inf for x in range(dim)]
+    minValueByPI = [+np.inf for x in range(dim)]
 
     permutation = np.zeros([dim ** 2, 2])
     k = 0
     for i in range(1, dim + 1):
+        for counter, populationIndex in enumerate(populationsIndex):
+            thisValues = [tmp[nonConstantPIs[int(i-1)]] for tmp in parametersForModelByPopulation[populationIndex]]
+            maxValueByPI[i-1]=np.max((np.max(thisValues),maxValueByPI[i-1]))
+            minValueByPI[i-1]=np.min((np.min(thisValues),minValueByPI[i-1]))  
+
         for j in range(1, dim + 1):
             permutation[k][0] = i
             permutation[k][1] = j
@@ -140,7 +173,7 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=No
             if i % dim == 0:
                 plt.ylabel(model.parameterNames[nonConstantPIs[int(permutation[i][0])-1]])
             if i < dim:
-                plt.title(model.parameterNames[nonConstantPIs[int(permutation[i][0])-1]])
+                plt.title(model.parameterNames[nonConstantPIs[int(permutation[i][1])-1]])
             if permutation[i][0] == permutation[i][1]:
                 if populationIndex == populationsIndex[-1]:
                     plt.cla()
@@ -156,26 +189,40 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=No
                         range_x = max_x - min_x
                         plt.bar(histogram_x, histogram_y, width=range_x / bin_b, color=my_colors[counter], align='center', alpha=0.5)
                         # plt.title(model.parameterNames[nonConstantPIs[int(permutation[i][0])-1]])
-                        if actualValues:
-                            plt.vlines(actualValues[nonConstantPIs[int(permutation[i][0])-1]], 0, plt.gca().get_ylim()[1], colors='k', linestyles='--', label='')
+                        if actualValues is not None:
+                            plt.vlines(actualValues[nonConstantPIs[int(permutation[i][0])-1]], 0, plt.gca().get_ylim()[1], linewidth=actualValuesLineWidth, colors=actualValuesColor, linestyles='--', label='')
+
+                        if plotHistogramOnFullRange:
+                            plt.xlim([minValueByPI[int(permutation[i][0]-1)],maxValueByPI[int(permutation[i][0]-1)]])
 
             else:
                 if not (len(x) == 0):
                     tag = str(populationIndex)
-                    plt.scatter(x, y, s=20, marker='o', c=my_colors[counter], edgecolor=my_colors[counter], alpha=0.5, label=tag)
+                    plt.scatter(y, x, s=20, marker='o', c=my_colors[counter], edgecolor=my_colors[counter], alpha=0.5, label=tag)
                     plt.hold(True)
 
                     if i == len(permutation)-2:
-                        plt.legend(loc='lower right', bbox_to_anchor=(1.5, -0.7), fancybox=False, shadow=False, ncol=5, prop={'size': 18})
+                        plt.legend(loc='lower right', bbox_to_anchor=(1.5, -0.8), fancybox=True, shadow=False, ncol=5, prop={'size': 18})
 
                     if actualValues is not None and populationIndex == populationsIndex[-1]:
-                        plt.scatter([actualValues[nonConstantPIs[int(permutation[i][0]-1)]]], [actualValues[nonConstantPIs[int(permutation[i][1]-1)]]], marker='+', s=5000, color='black', linewidth=2)
+                        plt.scatter([actualValues[nonConstantPIs[int(permutation[i][1]-1)]]], [actualValues[nonConstantPIs[int(permutation[i][0]-1)]]], marker='+', s=5000, color=actualValuesColor, linewidth=actualValuesLineWidth)
+
+            
+                if plotHistogramOnFullRange:
+                    plt.ylim([minValueByPI[int(permutation[i][0]-1)],maxValueByPI[int(permutation[i][0]-1)]])
+                    plt.xlim([minValueByPI[int(permutation[i][1]-1)],maxValueByPI[int(permutation[i][1]-1)]])
 
             xmin, xmax = plt.xlim()
             ymin, ymax = plt.ylim()
 
-            plt.axis([xmin, xmax, ymin, ymax])
-            plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='small')
-            plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='small')
+            if not plotHistogramOnFullRange:
+                plt.axis([xmin, xmax, ymin, ymax])
+            if True:            
+                plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
+                plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
+            else:
+                plt.xticks([])
+                plt.yticks([])
 
-    fig.suptitle(model.name)
+    if False:
+        fig.suptitle(model.name)

@@ -23,6 +23,8 @@ class AbcModel:
                  prior,  # array of length nparameters
                  nparameters,  # including initial conditions, etc
                  parameterNames=None,
+                 simulateArgs=None,
+                 pool=None,
                  ):
         self.name = name
         self.simulationFn = simulationFn
@@ -32,10 +34,18 @@ class AbcModel:
         if parameterNames is None:
             parameterNames = ['P%d' % x for x in range(self.nparameters)]
         self.parameterNames = parameterNames
+        if simulateArgs is not None:
+            self.simulateArgs = simulateArgs
+        else:
+            self.simulateArgs = tuple()
+
+        self.pool = pool
+
+
 
     def simulate(self, params):
-
-        simulatedData = apply(self.simulationFn, (params,))
+        #simulatedData = apply(self.simulationFn, (params,)+self.simulateArgs,{'pool':self.pool})
+        simulatedData = apply(self.simulationFn, (params,)+self.simulateArgs+(self.pool,))
         return simulatedData
 
     def distance(self, simulatedData, targetData, params, _unusedModel):

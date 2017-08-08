@@ -459,9 +459,10 @@ class Abcsmc:
                 # store the trajectories and distances in a list of length beta
                 simulation_number = mapping[i]
 
-                sample_points = sims[i, :, :]
+                sample_points = sims[i]#ABC not sure I need to explicity define the second dimension of this guy
                 if do_comp:
                     model = self.models[model_index]
+
                     distance = model.distance(sample_points, self.data, this_model_parameters[i], None)
                     dist = check_below_threshold(distance, epsilon)
                 else:
