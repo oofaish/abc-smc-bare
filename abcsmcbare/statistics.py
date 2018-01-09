@@ -137,7 +137,7 @@ def mvnd_gen(m, c):
     """
     a = list(rnd.normal(0, 1, len(m)))
     lambdas, vect = la.eig(c)
-    print lambdas
+    print(lambdas)
     tmp = np.mat(vect) * np.mat(np.diag(np.sqrt(lambdas))) * np.transpose(np.mat(a))
     res = list()
     for i in range(len(m)):
@@ -196,16 +196,16 @@ def mvstdnormcdf(lower, upper, corr_coef, **kwds):
     Examples
     --------
 
-    >> print mvstdnormcdf([-np.inf, -np.inf], [0.0, np.inf], 0.5)
+    >> print(mvstdnormcdf([-np.inf, -np.inf], [0.0, np.inf], 0.5))
     0.5
     >> corr = [[1.0, 0, 0.5], [0, 1, 0], [0.5, 0,1]]
-    >> print mvstdnormcdf([-np.inf, -np.inf, -100.0], [0.0, 0.0, 0.0], corr, abseps=1e-6)
+    >> print(mvstdnormcdf([-np.inf, -np.inf, -100.0], [0.0, 0.0, 0.0], corr, abseps=1e-6))
     0.166666399198
-    >> print mvstdnormcdf([-np.inf, -np.inf, -100.0],[0.0, 0.0, 0.0], corr, abseps=1e-8)
+    >> print(mvstdnormcdf([-np.inf, -np.inf, -100.0],[0.0, 0.0, 0.0], corr, abseps=1e-8))
     something wrong completion with ERROR > EPS and MAXPTS function values used;
                         increase MAXPTS to decrease ERROR; 1.048330348e-006
     0.166666546218
-    >> print mvstdnormcdf([-np.inf, -np.inf, -100.0], [0.0, 0.0, 0.0], corr, maxpts=100000, abseps=1e-8)
+    >> print(mvstdnormcdf([-np.inf, -np.inf, -100.0], [0.0, 0.0, 0.0], corr, maxpts=100000, abseps=1e-8))
     0.166666588293
     """
     n = len(lower)
@@ -247,7 +247,7 @@ def mvstdnormcdf(lower, upper, corr_coef, **kwds):
     np.putmask(infin, lowinf * uppinf, -1)
     error, cdfvalue, inform = scipy.stats.mvn.mvndst(lower, upper, infin, correl, **kwds)
     if inform:
-        print 'something wrong', inform, error, cdfvalue
+        print('something wrong', inform, error, cdfvalue)
     return cdfvalue
 
 

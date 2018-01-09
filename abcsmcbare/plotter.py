@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from PriorType import PriorType
+from .PriorType import PriorType
+from matplotlib.ticker import FormatStrFormatter
 
 
 def bin_data(d, w, nbins):
@@ -99,10 +100,6 @@ def plotHistogram(result, modelIndex, parameterIndexes=None, models=None, bins=9
             label = 'parameter ' + repr(parameterIndex)
 
         axs[i].bar(histogram_x, histogram_y, color='#0059b3', width=range_x / bins, align='center', alpha=.5, label=label)
-        plt.hold(True)
-
-    plt.hold(False)
-
 
 def nonConstantParameterIndexes(model):
     pi = []
@@ -199,7 +196,6 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=No
                 if not (len(x) == 0):
                     tag = str(populationIndex)
                     plt.scatter(y, x, s=20, marker='o', c=my_colors[counter], edgecolor=my_colors[counter], alpha=0.5, label=tag)
-                    plt.hold(True)
 
                     if i == len(permutation)-2:
                         plt.legend(loc='lower right', bbox_to_anchor=(1.5, -0.8), fancybox=True, shadow=False, ncol=5, prop={'size': 18})
@@ -220,6 +216,9 @@ def doPairPlot(allResults, modelIndex, populationsIndex, models, actualValues=No
             if True:            
                 plt.xticks((xmin, (xmin + xmax) / 2.0, xmax), size='xx-small')
                 plt.yticks((ymin, (ymin + ymax) / 2.0, ymax), size='xx-small')
+                ax = plt.gca()
+                ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+                ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
             else:
                 plt.xticks([])
                 plt.yticks([])

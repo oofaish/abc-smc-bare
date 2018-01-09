@@ -45,9 +45,9 @@ class AbcModel:
 
     def simulate(self, params):
         #simulatedData = apply(self.simulationFn, (params,)+self.simulateArgs,{'pool':self.pool})
-        simulatedData = apply(self.simulationFn, (params,)+self.simulateArgs+(self.pool,))
+        simulatedData = self.simulationFn(*((params,)+self.simulateArgs+(self.pool,)))
         return simulatedData
 
     def distance(self, simulatedData, targetData, params, _unusedModel):
-        d = apply(self.distanceFn, (simulatedData, targetData, params, self))
+        d = self.distanceFn(*(simulatedData, targetData, params, self))
         return d

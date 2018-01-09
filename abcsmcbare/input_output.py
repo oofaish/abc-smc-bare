@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import pickle
 import datetime
@@ -24,14 +25,14 @@ class InputOutput:
         if restart:
             self.folder += '_restart'
 
-        print 'top folder name is %s\n(useful e.g. if you are restarting because in such cases this is the folder name you should pass in)' % self.folder
+        print('top folder name is %s\n(useful e.g. if you are restarting because in such cases this is the folder name you should pass in)' % self.folder)
 
     # write rates, distances, trajectories
     def create_output_folders(self, num_outputs, pickling):
         try:
             os.mkdir(self.folder)
         except OSError:
-            print "\nThe folder " + self.folder + " already exists!\nContinuing anyway"
+            print("\nThe folder " + self.folder + " already exists!\nContinuing anyway")
 
         os.chdir(self.folder)
 
@@ -42,7 +43,7 @@ class InputOutput:
                 os.chdir(self.folder)
                 os.mkdir('copy')
             except OSError:
-                print "\nThe folder \'copy\' already exists!\nContinuing anyway"
+                print("\nThe folder \'copy\' already exists!\nContinuing anyway")
             os.chdir('..')
             out_file = open(self.folder + '/copy/algorithm_parameter.dat', "w")
             pickle.dump(num_outputs, out_file)

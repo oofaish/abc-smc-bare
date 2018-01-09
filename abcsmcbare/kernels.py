@@ -1,9 +1,10 @@
+from __future__ import print_function
 import numpy
 from numpy import random as rnd
 from scipy.stats import norm
 from abcsmcbare import statistics
-from KernelType import KernelType
-from PriorType import PriorType
+from .KernelType import KernelType
+from .PriorType import PriorType
 import sys
 
 # kernel is a list of length 3 such that :
@@ -49,14 +50,13 @@ def get_kernel(kernel_type, kernel, population, weights):
     npar = population.shape[1]
 
     if pop_size == 1:
-        print "WARNING: getKernel : only one particle so adaptation is not possible"
+        print("WARNING: getKernel : only one particle so adaptation is not possible")
 
     if kernel_type == KernelType.component_wise_uniform:
         if pop_size == 1:
             tmp = [[-1, 1] for _ in kernel[0]]
         else:
             tmp = list()
-            #print '---->', kernel
             for param in kernel[0]:
                 minimum = min(population[:, param])
                 maximum = max(population[:, param])

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 from numpy import random as rnd
 
@@ -6,8 +7,8 @@ import time
 import sys
 from abcsmcbare import kernels
 from abcsmcbare import statistics
-from KernelType import KernelType
-from PriorType import PriorType
+from .KernelType import KernelType
+from .PriorType import PriorType
 
 
 """
@@ -165,7 +166,7 @@ class Abcsmc:
                         all_uniform = False
                 if all_uniform:
                     self.special_cases[m] = 1
-                    print "### Found special kernel case 1 for model ", m, "###"
+                    print("### Found special kernel case 1 for model ", m, "###")
 
         self.hits = []
         self.sampled = []
@@ -181,7 +182,7 @@ class Abcsmc:
             if pop > 0 and adaptiveEpsilon:
                 adaptiveEpsilon, quantile = self.nextAdaptiveEpsilon(results.distances, epsilonSchedule[-1], adaptiveEpsilonQuantile)
                 if self.debug >= 1:
-                    print '### Adapting epsilon to %f (Quantile=%f) instead of %f' % (adaptiveEpsilon, quantile, thisEpsilon)
+                    print('### Adapting epsilon to %f (Quantile=%f) instead of %f' % (adaptiveEpsilon, quantile, thisEpsilon))
                     epsilonToUse = adaptiveEpsilon
             else:
                 epsilonToUse = thisEpsilon
@@ -198,19 +199,19 @@ class Abcsmc:
             self.io.write_pickled(self.nmodel, self.model_prev, self.weights_prev, self.parameters_prev, self.margins_prev, self.kernels, allResults)
 
             if self.debug >= 1:
-                print "### iter:%d, eps=%0.2f, sampled=%d, accepted=%.2f" % (pop + 1, epsilonToUse, self.sampled[pop], self.rate[pop])
+                print("### iter:%d, eps=%0.2f, sampled=%d, accepted=%.2f" % (pop + 1, epsilonToUse, self.sampled[pop], self.rate[pop]))
                 #   print "\t sampling steps / acceptance rate (%d/%):", self.sampled[pop], "/", self.rate[pop]
-                print "model marginals:", self.margins_prev
+                print("model marginals:", self.margins_prev)
 
                 if len(self.dead_models) > 0:
-                    print "\t dead models                      :", self.dead_models
+                    print("\t dead models                      :", self.dead_models)
                 if self.timing:
-                    print "\t timing:                          :", end_time - start_time
+                    print("\t timing:                          :", end_time - start_time)
 
                 sys.stdout.flush()
 
         if self.timing:
-            print "#### final time:", time.time() - all_start_time
+            print("#### final time:", time.time() - all_start_time)
 
         return allResults
 
@@ -231,14 +232,14 @@ class Abcsmc:
 
     def iterate_one_population(self, next_epsilon, prior):
         if self.debug == 2:
-            print "\n\n****iterate_one_population: next_epsilon, prior", next_epsilon, prior
+            print("\n\n****iterate_one_population: next_epsilon, prior", next_epsilon, prior)
 
         naccepted = 0
         sampled = 0
 
         while naccepted < self.nparticles:
             if self.debug == 2:
-                print "\t****batch"
+                print("\t****batch")
             if not prior:
                 sampled_models_indexes = self.sample_model()
                 sampled_params = self.sample_parameters(sampled_models_indexes)
@@ -256,7 +257,7 @@ class Abcsmc:
 
                     self.model_curr[naccepted] = sampled_models_indexes[i]
                     if self.debug == 2:
-                        print "\t****accepted", i, accepted_index[i], sampled_models_indexes[i]
+                        print("\t****accepted", i, accepted_index[i], sampled_models_indexes[i])
 
                     for p in range(self.models[sampled_models_indexes[i]].nparameters):
                         self.parameters_curr[naccepted].append(sampled_params[i][p])
@@ -267,14 +268,14 @@ class Abcsmc:
 
                     naccepted += 1
             if self.debug == 2:
-                print "#### current naccepted:", naccepted
+                print("#### current naccepted:", naccepted)
 
             if self.debug > 1:
-                print "\t****end  batch naccepted/sampled:", naccepted, sampled
+                print("\t****end  batch naccepted/sampled:", naccepted, sampled)
 
         # Finished loop over particles
         if self.debug == 2:
-            print "**** end of population naccepted/sampled:", naccepted, sampled
+            print("**** end of population naccepted/sampled:", naccepted, sampled)
 
         if not prior:
             self.compute_particle_weights()
@@ -286,10 +287,10 @@ class Abcsmc:
         self.update_model_marginals()
 
         if self.debug == 2:
-            print "**** end of population: particles"
+            print("**** end of population: particles")
             for i in range(self.nparticles):
-                print i, self.weights_curr[i], self.model_curr[i], self.parameters_curr[i]
-            print self.margins_curr
+                print(i, self.weights_curr[i], self.model_curr[i], self.parameters_curr[i])
+            print(self.margins_curr)
 
         # Prepare for next population
         self.margins_prev = self.margins_curr[:]
@@ -326,8 +327,8 @@ class Abcsmc:
 
                 for it in range(len(this_model_particles)):
                     if len(this_population[it, :]) != len(self.parameters_prev[this_model_particles[it]][:]):
-                        print '>>>', this_population[it, :]
-                        print '>>>', self.parameters_prev[this_model_particles[it]][:]
+                        print('>>>', this_population[it, :])
+                        print('>>>', self.parameters_prev[this_model_particles[it]][:])
 
                     this_population[it, :] = self.parameters_prev[this_model_particles[it]][:]
                     this_weights[it] = self.weights_prev[this_model_particles[it]]
@@ -426,7 +427,7 @@ class Abcsmc:
         """
 
         if self.debug == 2:
-            print '\t\t\t***simulate_and_compare_to_data'
+            print('\t\t\t***simulate_and_compare_to_data')
 
         accepted = [0] * self.nbatch
         traj = [[] for _ in range(self.nbatch)]
@@ -439,7 +440,7 @@ class Abcsmc:
             # create a list of indexes for the simulations corresponding to this model
             mapping = np.arange(self.nbatch)[model_indexes == model_index]
             if self.debug == 2:
-                print "\t\t\tmodel / mapping:", model_index, mapping
+                print("\t\t\tmodel / mapping:", model_index, mapping)
 
             num_simulations = len(mapping)
             if num_simulations == 0:
@@ -450,31 +451,41 @@ class Abcsmc:
             this_model_parameters = []
             for i in range(num_simulations):
                 this_model_parameters.append(sampled_params[mapping[i]])
+            try:
+                sims = self.models[model_index].simulate(this_model_parameters)
+                doh_fail = False
+                if self.debug == 2:
+                    print('\t\t\tsimulation dimensions:', sims.shape)
 
-            sims = self.models[model_index].simulate(this_model_parameters)
-            if self.debug == 2:
-                print '\t\t\tsimulation dimensions:', sims.shape
+            except:
+                print('SIMULATION FAILEDD!')
+                sims = None
+                doh_fail = True
 
             for i in range(num_simulations):
                 # store the trajectories and distances in a list of length beta
                 simulation_number = mapping[i]
 
-                sample_points = sims[i]#ABC not sure I need to explicity define the second dimension of this guy
-                if do_comp:
-                    model = self.models[model_index]
-
-                    distance = model.distance(sample_points, self.data, this_model_parameters[i], None)
-                    dist = check_below_threshold(distance, epsilon)
+                if doh_fail:
+                    dist = False
+                    distance = np.inf
                 else:
-                    distance = 0
-                    dist = True
+                    sample_points = sims[i]#ABC not sure I need to explicity define the second dimension of this guy
+                    if do_comp:
+                        model = self.models[model_index]
+
+                        distance = model.distance(sample_points, self.data, this_model_parameters[i], None)
+                        dist = check_below_threshold(distance, epsilon)
+                    else:
+                        distance = 0
+                        dist = True
 
                 if dist:
                     accepted[simulation_number] += 1
 
                 if self.debug == 2:
-                    print '\t\t\tdistance/this_epsilon/mapping/b:', distance, epsilon, \
-                        simulation_number, accepted[simulation_number]
+                    print('\t\t\tdistance/this_epsilon/mapping/b:', distance, epsilon, \
+                        simulation_number, accepted[simulation_number])
 
                 traj[simulation_number] = sample_points
                 distances[simulation_number] = distance
@@ -581,7 +592,7 @@ class Abcsmc:
 
         """
         if self.debug == 2:
-            print "\t\t\t***sampleTheParameter"
+            print("\t\t\t***sampleTheParameter")
         samples = []
 
         for i in range(self.nbatch):
@@ -607,9 +618,9 @@ class Abcsmc:
                                             self.kernel_type, self.special_cases[model_num])
 
                 if self.debug == 2:
-                    print "\t\t\tsampled p prob:", prior_prob
-                    print "\t\t\tnew:", sample
-                    print "\t\t\told:", self.parameters_prev[particle]
+                    print("\t\t\tsampled p prob:", prior_prob)
+                    print("\t\t\tnew:", sample)
+                    print("\t\t\told:", self.parameters_prev[particle])
 
             samples.append(sample)
 
@@ -626,7 +637,7 @@ class Abcsmc:
         marginal out of s2 into a separate term)
         """
         if self.debug == 2:
-            print "\t***computeParticleWeights"
+            print("\t***computeParticleWeights")
 
         for k in range(self.nparticles):
             model_num = self.model_curr[k]
@@ -666,7 +677,7 @@ class Abcsmc:
                 if int(model_num) == int(self.model_prev[j]):
 
                     if self.debug == 2:
-                        print "\tj, weights_prev, kernelpdf", j, self.weights_prev[j],
+                        print("\tj, weights_prev, kernelpdf", j, self.weights_prev[j],)
                         self.kernelpdffn(this_param, self.parameters_prev[j], model.prior,
                                          self.kernels[model_num], self.kernel_aux[j], self.kernel_type)
 
@@ -675,7 +686,7 @@ class Abcsmc:
                     s2 += self.weights_prev[j] * kernel_pdf
 
                 if self.debug == 2:
-                    print "\tnumer/s1/s2/m(t-1) : ", numerator, s1, s2, self.margins_prev[model_num]
+                    print("\tnumer/s1/s2/m(t-1) : ", numerator, s1, s2, self.margins_prev[model_num])
 
             self.weights_curr[k] = self.margins_prev[model_num] * numerator / (s1 * s2)
 
@@ -710,6 +721,7 @@ def sample_particle_from_model(nparticle, selected_model, margins_prev, model_pr
     -------
     the index of the selected particle
     """
+
     u = rnd.uniform(low=0, high=margins_prev[selected_model])
     f = 0
 
@@ -756,12 +768,3 @@ def check_below_threshold(distance, epsilon):
     epsilon : list of maximum acceptable distances
     """
     return distance < epsilon
-    # accepted = False
-    # #print distance, epsilon
-    # for i in range(len(epsilon)):
-    #     if epsilon[i] >= distance[i] >= 0:
-    #         accepted = True
-    #     else:
-    #         accepted = False
-    #         break
-    # return accepted

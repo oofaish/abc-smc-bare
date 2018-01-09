@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 
@@ -31,7 +32,7 @@ class Tolerance(object):
         elif self.tol_type == "log":
             return self.log_tol()
         else:
-            print "Specify either const, linear, exp or log for tolerance class"
+            print("Specify either const, linear, exp or log for tolerance class")
 
     def linear_tol(self):
         """Linearly decreasing tolerance level."""
